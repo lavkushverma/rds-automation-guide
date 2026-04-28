@@ -1,7 +1,8 @@
-// Download Functions
+// Downloads.js - Fixed for GitHub Pages
+// All download content definitions
 
-// Lambda Function Code
-const lambdaCode = `import boto3
+const FILES = {
+    lambda: `import boto3
 import os
 import logging
 
@@ -49,10 +50,9 @@ def lambda_handler(event, context):
         
     except Exception as e:
         logger.error(f"Error: {str(e)}")
-        raise e`;
+        raise e`,
 
-// Terraform Files
-const terraformMain = `terraform {
+    terraformMain: `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -212,9 +212,9 @@ resource "aws_lambda_permission" "allow_eventbridge_stop" {
   function_name = aws_lambda_function.rds_stop.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.rds_stop_schedule.arn
-}`;
+}`,
 
-const terraformVariables = `variable "aws_region" {
+    terraformVariables: `variable "aws_region" {
   description = "AWS Region"
   default     = "us-east-1"
 }
@@ -237,9 +237,9 @@ variable "start_cron" {
 variable "stop_cron" {
   description = "Cron expression for stop schedule"
   default     = "cron(30 18 ? * MON-FRI *)" # 6:30 PM Mon-Fri
-}`;
+}`,
 
-const terraformOutputs = `output "start_lambda_arn" {
+    terraformOutputs: `output "start_lambda_arn" {
   value = aws_lambda_function.rds_start.arn
 }
 
@@ -253,9 +253,9 @@ output "start_schedule_rule" {
 
 output "stop_schedule_rule" {
   value = aws_cloudwatch_event_rule.rds_stop_schedule.name
-}`;
+}`,
 
-const terraformReadme = `# RDS Start/Stop Automation - Terraform
+    terraformReadme: `# RDS Start/Stop Automation - Terraform
 
 ## Prerequisites
 - AWS CLI configured
@@ -304,9 +304,9 @@ Edit \`variables.tf\` to change:
 \`\`\`bash
 terraform destroy
 \`\`\`
-`;
+`,
 
-const bashScript = `#!/bin/bash
+    bashScript: `#!/bin/bash
 
 # RDS Start/Stop Automation Setup Script
 # This script sets up Lambda functions and EventBridge rules for RDS automation
@@ -356,7 +356,7 @@ POLICY_ARN=$(aws iam create-policy \\
   --policy-name $POLICY_NAME \\
   --policy-document file://rds-policy.json \\
   --query 'Policy.Arn' \\
-  --output text 2>/dev/null || echo "arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}")
+  --output text 2>/dev/null || echo "arn:aws:iam::$\{ACCOUNT_ID}:policy/$\{POLICY_NAME}")
 
 echo "✅ Policy created: $POLICY_ARN"
 
@@ -390,380 +390,407 @@ echo "✅ IAM Role created and policy attached"
 echo "⏳ Waiting for IAM role to propagate..."
 sleep 10
 
-# Step 3: Create Lambda deployment package
-echo "📦 Creating Lambda deployment package..."
-cat > lambda_function.py <<'PYTHON_EOF'
-import boto3
-import os
-import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-rds = boto3.client('rds')
-
-def lambda_handler(event, context):
-    action = os.environ.get('ACTION', 'stop')
-    tag_key = os.environ.get('TAG_KEY', 'AutoStartStop')
-    tag_value = os.environ.get('TAG_VALUE', 'true')
-    
-    try:
-        response = rds.describe_db_instances()
-        
-        for db_instance in response['DBInstances']:
-            db_instance_identifier = db_instance['DBInstanceIdentifier']
-            db_instance_arn = db_instance['DBInstanceArn']
-            db_instance_status = db_instance['DBInstanceStatus']
-            
-            tags_response = rds.list_tags_for_resource(ResourceName=db_instance_arn)
-            tags = {tag['Key']: tag['Value'] for tag in tags_response['TagList']}
-            
-            if tags.get(tag_key) == tag_value:
-                if action == 'stop' and db_instance_status == 'available':
-                    logger.info(f"Stopping RDS instance: {db_instance_identifier}")
-                    rds.stop_db_instance(DBInstanceIdentifier=db_instance_identifier)
-                    
-                elif action == 'start' and db_instance_status == 'stopped':
-                    logger.info(f"Starting RDS instance: {db_instance_identifier}")
-                    rds.start_db_instance(DBInstanceIdentifier=db_instance_identifier)
-                else:
-                    logger.info(f"Instance {db_instance_identifier} is in {db_instance_status} state.")
-            else:
-                logger.info(f"Instance {db_instance_identifier} does not have required tag.")
-        
-        return {
-            'statusCode': 200,
-            'body': f'Successfully executed {action} action'
-        }
-        
-    except Exception as e:
-        logger.error(f"Error: {str(e)}")
-        raise e
-PYTHON_EOF
-
-zip lambda_function.zip lambda_function.py
-echo "✅ Lambda package created"
-
-# Step 4: Create Lambda Functions
-echo "⚡ Creating Lambda Functions..."
-ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}"
-
-# Create START function
-aws lambda create-function \\
-  --function-name RDS-Start-Function \\
-  --runtime python3.11 \\
-  --role $ROLE_ARN \\
-  --handler lambda_function.lambda_handler \\
-  --zip-file fileb://lambda_function.zip \\
-  --timeout 60 \\
-  --environment Variables="{ACTION=start,TAG_KEY=AutoStartStop,TAG_VALUE=true}" \\
-  --region $REGION 2>/dev/null || aws lambda update-function-code \\
-  --function-name RDS-Start-Function \\
-  --zip-file fileb://lambda_function.zip \\
-  --region $REGION
-
-echo "✅ START function created"
-
-# Create STOP function
-aws lambda create-function \\
-  --function-name RDS-Stop-Function \\
-  --runtime python3.11 \\
-  --role $ROLE_ARN \\
-  --handler lambda_function.lambda_handler \\
-  --zip-file fileb://lambda_function.zip \\
-  --timeout 60 \\
-  --environment Variables="{ACTION=stop,TAG_KEY=AutoStartStop,TAG_VALUE=true}" \\
-  --region $REGION 2>/dev/null || aws lambda update-function-code \\
-  --function-name RDS-Stop-Function \\
-  --zip-file fileb://lambda_function.zip \\
-  --region $REGION
-
-echo "✅ STOP function created"
-
-# Step 5: Create EventBridge Rules
-echo "⏰ Creating EventBridge Rules..."
-
-# START Rule (9:30 AM)
-START_RULE_ARN=$(aws events put-rule \\
-  --name RDS-Start-Schedule \\
-  --schedule-expression "cron(30 9 ? * MON-FRI *)" \\
-  --region $REGION \\
-  --query 'RuleArn' \\
-  --output text)
-
-echo "✅ START schedule created: $START_RULE_ARN"
-
-# STOP Rule (6:30 PM)
-STOP_RULE_ARN=$(aws events put-rule \\
-  --name RDS-Stop-Schedule \\
-  --schedule-expression "cron(30 18 ? * MON-FRI *)" \\
-  --region $REGION \\
-  --query 'RuleArn' \\
-  --output text)
-
-echo "✅ STOP schedule created: $STOP_RULE_ARN"
-
-# Step 6: Add Lambda permissions
-echo "🔐 Adding Lambda permissions..."
-
-START_FUNCTION_ARN="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:RDS-Start-Function"
-STOP_FUNCTION_ARN="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:RDS-Stop-Function"
-
-aws lambda add-permission \\
-  --function-name RDS-Start-Function \\
-  --statement-id AllowEventBridgeInvoke \\
-  --action lambda:InvokeFunction \\
-  --principal events.amazonaws.com \\
-  --source-arn $START_RULE_ARN \\
-  --region $REGION 2>/dev/null || echo "Permission already exists"
-
-aws lambda add-permission \\
-  --function-name RDS-Stop-Function \\
-  --statement-id AllowEventBridgeInvoke \\
-  --action lambda:InvokeFunction \\
-  --principal events.amazonaws.com \\
-  --source-arn $STOP_RULE_ARN \\
-  --region $REGION 2>/dev/null || echo "Permission already exists"
-
-echo "✅ Permissions added"
-
-# Step 7: Add targets to rules
-echo "🎯 Adding targets to EventBridge rules..."
-
-aws events put-targets \\
-  --rule RDS-Start-Schedule \\
-  --targets "Id"="1","Arn"="$START_FUNCTION_ARN" \\
-  --region $REGION
-
-aws events put-targets \\
-  --rule RDS-Stop-Schedule \\
-  --targets "Id"="1","Arn"="$STOP_FUNCTION_ARN" \\
-  --region $REGION
-
-echo "✅ Targets configured"
-
-# Cleanup temporary files
-rm -f rds-policy.json trust-policy.json lambda_function.zip lambda_function.py
-
-echo ""
 echo "🎉 Setup complete!"
 echo ""
 echo "Next steps:"
 echo "1. Tag your RDS instances with Key=AutoStartStop, Value=true"
-echo "   aws rds add-tags-to-resource \\\\"
-echo "     --resource-name arn:aws:rds:${REGION}:${ACCOUNT_ID}:db:YOUR_DB_NAME \\\\"
-echo "     --tags Key=AutoStartStop,Value=true"
-echo ""
-echo "2. Test the functions:"
-echo "   aws lambda invoke --function-name RDS-Start-Function response.json"
-echo "   aws lambda invoke --function-name RDS-Stop-Function response.json"
-echo ""
-echo "3. Monitor CloudWatch Logs:"
-echo "   aws logs tail /aws/lambda/RDS-Start-Function --follow"
-`;
+echo "2. Test the functions"
+echo "3. Monitor CloudWatch Logs"
+`
+};
 
-// Download PDF
-function downloadPDF() {
-    showLoading();
-    
-    setTimeout(() => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // Title
-        doc.setFontSize(20);
-        doc.setTextColor(35, 47, 62);
-        doc.text('RDS Start/Stop Automation Guide', 20, 20);
-        
-        // Metadata
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 30);
-        
-        let yPos = 45;
-        
-        // Content
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        
-        const content = [
-            { title: 'Solution Overview', text: 'Tag-based RDS instance automation with Lambda and EventBridge' },
-            { title: 'Start Time', text: '9:30 AM (Weekdays)' },
-            { title: 'Stop Time', text: '6:30 PM (Weekdays)' },
-            { title: 'Tag Key', text: 'AutoStartStop' },
-            { title: 'Tag Value', text: 'true' }
-        ];
-        
-        content.forEach(item => {
-            doc.setFont(undefined, 'bold');
-            doc.text(item.title + ':', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(item.text, 70, yPos);
-            yPos += 10;
-        });
-        
-        // Add sections
-        yPos += 10;
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('Implementation Steps', 20, yPos);
-        
-        yPos += 10;
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        
-        const steps = [
-            '1. Create IAM Role with RDS permissions',
-            '2. Create Lambda functions (Start & Stop)',
-            '3. Configure EventBridge schedules',
-            '4. Tag RDS instances for automation',
-            '5. Test and monitor via CloudWatch'
-        ];
-        
-        steps.forEach(step => {
-            doc.text(step, 25, yPos);
-            yPos += 7;
-        });
-        
-        // Save
-        doc.save(`RDS-Automation-Guide-${getFormattedDate()}.pdf`);
-        hideLoading();
-    }, 500);
+// Utility Functions
+function showLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
 }
 
-// Download Word Document
-function downloadDOCX() {
-    showLoading();
-    
-    setTimeout(() => {
-        const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
-        
-        const doc = new Document({
-            sections: [{
-                properties: {},
-                children: [
-                    new Paragraph({
-                        text: "RDS Start/Stop Automation Guide",
-                        heading: HeadingLevel.HEADING_1,
-                    }),
-                    new Paragraph({
-                        text: "Complete Solution with Lambda, EventBridge & Terraform",
-                        heading: HeadingLevel.HEADING_2,
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: `Generated: ${new Date().toLocaleDateString()}`,
-                                italics: true,
-                            }),
-                        ],
-                    }),
-                    new Paragraph({ text: "" }),
-                    new Paragraph({
-                        text: "Solution Overview",
-                        heading: HeadingLevel.HEADING_2,
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: "Start Time: ", bold: true }),
-                            new TextRun("9:30 AM (Weekdays)"),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: "Stop Time: ", bold: true }),
-                            new TextRun("6:30 PM (Weekdays)"),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: "Tag Key: ", bold: true }),
-                            new TextRun("AutoStartStop"),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: "Tag Value: ", bold: true }),
-                            new TextRun("true"),
-                        ],
-                    }),
-                    new Paragraph({ text: "" }),
-                    new Paragraph({
-                        text: "For complete code samples and detailed instructions, please refer to the downloaded Terraform files and Lambda code.",
-                    }),
-                ],
-            }],
-        });
-        
-        Packer.toBlob(doc).then(blob => {
-            saveAs(blob, `RDS-Automation-Guide-${getFormattedDate()}.docx`);
-            hideLoading();
-        });
-    }, 500);
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
 }
 
-// Download Terraform Files
-function downloadTerraform() {
-    showLoading();
+function getFormattedDate() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function showError(message) {
+    hideLoading();
+    alert('Download Error: ' + message + '\n\nPlease check your browser console for details.');
+    console.error('Download error:', message);
+}
+
+// Check if libraries are loaded
+function checkLibraries() {
+    const missing = [];
+    if (typeof JSZip === 'undefined') missing.push('JSZip');
+    if (typeof saveAs === 'undefined') missing.push('FileSaver');
+    if (typeof window.jspdf === 'undefined') missing.push('jsPDF');
     
-    setTimeout(() => {
-        const zip = new JSZip();
-        const terraformFolder = zip.folder("terraform");
-        
-        terraformFolder.file("main.tf", terraformMain);
-        terraformFolder.file("variables.tf", terraformVariables);
-        terraformFolder.file("outputs.tf", terraformOutputs);
-        terraformFolder.file("lambda_function.py", lambdaCode);
-        terraformFolder.file("README.md", terraformReadme);
-        
-        zip.generateAsync({ type: "blob" }).then(function(content) {
-            saveAs(content, `RDS-Terraform-${getFormattedDate()}.zip`);
-            hideLoading();
-        });
-    }, 500);
+    if (missing.length > 0) {
+        console.error('Missing libraries:', missing);
+        return false;
+    }
+    return true;
 }
 
 // Download Lambda Code
 function downloadLambda() {
-    const blob = new Blob([lambdaCode], { type: 'text/x-python' });
-    saveAs(blob, 'lambda_function.py');
+    try {
+        const blob = new Blob([FILES.lambda], { type: 'text/x-python' });
+        saveAs(blob, 'lambda_function.py');
+    } catch (error) {
+        showError('Failed to download Lambda code: ' + error.message);
+    }
 }
 
 // Download Bash Script
 function downloadBashScript() {
-    const blob = new Blob([bashScript], { type: 'text/x-sh' });
-    saveAs(blob, 'setup-rds-automation.sh');
+    try {
+        const blob = new Blob([FILES.bashScript], { type: 'text/x-sh' });
+        saveAs(blob, 'setup-rds-automation.sh');
+    } catch (error) {
+        showError('Failed to download bash script: ' + error.message);
+    }
+}
+
+// Download Terraform Files
+function downloadTerraform() {
+    if (!checkLibraries()) {
+        showError('Required libraries not loaded. Please refresh the page.');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const zip = new JSZip();
+        const terraformFolder = zip.folder("terraform");
+        
+        terraformFolder.file("main.tf", FILES.terraformMain);
+        terraformFolder.file("variables.tf", FILES.terraformVariables);
+        terraformFolder.file("outputs.tf", FILES.terraformOutputs);
+        terraformFolder.file("lambda_function.py", FILES.lambda);
+        terraformFolder.file("README.md", FILES.terraformReadme);
+        
+        zip.generateAsync({ type: "blob" })
+            .then(function(content) {
+                saveAs(content, `RDS-Terraform-${getFormattedDate()}.zip`);
+                hideLoading();
+            })
+            .catch(function(error) {
+                showError('Failed to generate ZIP: ' + error.message);
+            });
+    } catch (error) {
+        showError('Failed to create Terraform package: ' + error.message);
+    }
 }
 
 // Download All Files
 function downloadAll() {
+    if (!checkLibraries()) {
+        showError('Required libraries not loaded. Please refresh the page.');
+        return;
+    }
+    
     showLoading();
     
-    setTimeout(() => {
+    try {
         const zip = new JSZip();
         
         // Terraform folder
         const terraformFolder = zip.folder("terraform");
-        terraformFolder.file("main.tf", terraformMain);
-        terraformFolder.file("variables.tf", terraformVariables);
-        terraformFolder.file("outputs.tf", terraformOutputs);
-        terraformFolder.file("README.md", terraformReadme);
+        terraformFolder.file("main.tf", FILES.terraformMain);
+        terraformFolder.file("variables.tf", FILES.terraformVariables);
+        terraformFolder.file("outputs.tf", FILES.terraformOutputs);
+        terraformFolder.file("README.md", FILES.terraformReadme);
         
         // Lambda folder
         const lambdaFolder = zip.folder("lambda");
-        lambdaFolder.file("lambda_function.py", lambdaCode);
+        lambdaFolder.file("lambda_function.py", FILES.lambda);
         
         // Scripts folder
         const scriptsFolder = zip.folder("scripts");
-        scriptsFolder.file("setup-rds-automation.sh", bashScript);
+        scriptsFolder.file("setup-rds-automation.sh", FILES.bashScript);
         
         // Documentation
         const docsFolder = zip.folder("documentation");
-        docsFolder.file("README.txt", "RDS Start/Stop Automation - Complete Package\n\nContents:\n- terraform/ - Terraform IaC files\n- lambda/ - Lambda function code\n- scripts/ - Setup automation script\n\nFor detailed instructions, see the main guide on the website.");
+        const readmeContent = `RDS START/STOP AUTOMATION - COMPLETE PACKAGE
+=============================================
+
+This package contains everything you need to implement automated 
+RDS instance start/stop functionality using AWS Lambda and EventBridge.
+
+CONTENTS:
+---------
+1. terraform/ - Terraform IaC files
+2. lambda/ - Lambda function code
+3. scripts/ - Setup automation script
+4. documentation/ - This file
+
+QUICK START:
+-----------
+Option 1 - Terraform:
+   cd terraform/
+   terraform init
+   terraform apply
+
+Option 2 - AWS CLI:
+   chmod +x scripts/setup-rds-automation.sh
+   ./scripts/setup-rds-automation.sh
+
+REQUIREMENTS:
+------------
+- AWS Account
+- AWS CLI configured
+- Appropriate IAM permissions
+- Terraform (for IaC option)
+
+Generated: ${new Date().toLocaleDateString()}
+`;
+        docsFolder.file("README.txt", readmeContent);
         
-        zip.generateAsync({ type: "blob" }).then(function(content) {
-            saveAs(content, `RDS-Automation-Complete-${getFormattedDate()}.zip`);
-            hideLoading();
-        });
-    }, 500);
+        zip.generateAsync({ type: "blob" })
+            .then(function(content) {
+                saveAs(content, `RDS-Automation-Complete-${getFormattedDate()}.zip`);
+                hideLoading();
+            })
+            .catch(function(error) {
+                showError('Failed to generate complete package: ' + error.message);
+            });
+    } catch (error) {
+        showError('Failed to create package: ' + error.message);
+    }
 }
+
+// Download PDF
+function downloadPDF() {
+    if (typeof window.jspdf === 'undefined') {
+        showError('PDF library not loaded. Please refresh the page.');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        let yPos = 20;
+        const lineHeight = 7;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 20;
+        
+        // Helper function to add text with page breaks
+        function addText(text, fontSize = 11, isBold = false) {
+            if (yPos > pageHeight - 20) {
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.setFontSize(fontSize);
+            doc.setFont(undefined, isBold ? 'bold' : 'normal');
+            doc.text(text, margin, yPos);
+            yPos += lineHeight;
+        }
+        
+        // Title
+        doc.setFontSize(22);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(35, 47, 62);
+        doc.text('RDS Start/Stop Automation Guide', margin, yPos);
+        yPos += 10;
+        
+        // Subtitle
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(100);
+        doc.text('Complete Solution with Lambda & EventBridge', margin, yPos);
+        yPos += 8;
+        
+        // Date
+        doc.setFontSize(10);
+        doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, yPos);
+        yPos += 15;
+        
+        // Reset color
+        doc.setTextColor(0);
+        
+        // Solution Overview
+        addText('SOLUTION OVERVIEW', 16, true);
+        yPos += 3;
+        addText('• Start Time: 9:30 AM (Monday-Friday)');
+        addText('• Stop Time: 6:30 PM (Monday-Friday)');
+        addText('• Tag Key: AutoStartStop');
+        addText('• Tag Value: true');
+        addText('• Technology: AWS Lambda, EventBridge, Python 3.11');
+        yPos += 5;
+        
+        // Architecture
+        addText('ARCHITECTURE', 16, true);
+        yPos += 3;
+        addText('1. EventBridge triggers Lambda functions on schedule');
+        addText('2. Lambda queries all RDS instances');
+        addText('3. Instances with AutoStartStop=true tag are affected');
+        addText('4. CloudWatch Logs capture all operations');
+        yPos += 5;
+        
+        // Implementation Steps
+        addText('IMPLEMENTATION STEPS', 16, true);
+        yPos += 3;
+        addText('Step 1: Create IAM Role', 12, true);
+        addText('   • Open IAM Console → Roles → Create Role');
+        addText('   • Select Lambda service');
+        addText('   • Attach RDS and CloudWatch permissions');
+        yPos += 3;
+        
+        addText('Step 2: Create Lambda Functions', 12, true);
+        addText('   • Create two functions: RDS-Start-Function & RDS-Stop-Function');
+        addText('   • Runtime: Python 3.11');
+        addText('   • Set environment variables (ACTION, TAG_KEY, TAG_VALUE)');
+        yPos += 3;
+        
+        addText('Step 3: Configure EventBridge Rules', 12, true);
+        addText('   • Start schedule: cron(30 9 ? * MON-FRI *)');
+        addText('   • Stop schedule: cron(30 18 ? * MON-FRI *)');
+        yPos += 3;
+        
+        addText('Step 4: Tag RDS Instances', 12, true);
+        addText('   • Add tag: AutoStartStop = true');
+        yPos += 5;
+        
+        // Important Notes
+        addText('IMPORTANT NOTES', 16, true);
+        yPos += 3;
+        addText('⚠ Timezone: Cron expressions use UTC');
+        addText('⚠ Cannot stop Multi-AZ instances');
+        addText('⚠ Cannot stop instances with read replicas');
+        addText('⚠ Stopped instances auto-start after 7 days');
+        yPos += 5;
+        
+        // Testing
+        addText('TESTING COMMANDS', 16, true);
+        yPos += 3;
+        addText('aws lambda invoke --function-name RDS-Start-Function response.json', 9);
+        addText('aws lambda invoke --function-name RDS-Stop-Function response.json', 9);
+        yPos += 5;
+        
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(128);
+        doc.text('For complete code and Terraform files, download from the website.', margin, pageHeight - 10);
+        
+        // Save
+        doc.save(`RDS-Automation-Guide-${getFormattedDate()}.pdf`);
+        hideLoading();
+    } catch (error) {
+        showError('Failed to generate PDF: ' + error.message);
+    }
+}
+
+// Download DOCX (Simple text-based version)
+function downloadDOCX() {
+    showLoading();
+    
+    try {
+        const content = `RDS START/STOP AUTOMATION GUIDE
+================================
+
+Complete Solution with Lambda, EventBridge & Terraform
+Generated: ${new Date().toLocaleDateString()}
+
+SOLUTION OVERVIEW
+-----------------
+• Start Time: 9:30 AM (Monday-Friday)
+• Stop Time: 6:30 PM (Monday-Friday)
+• Tag Key: AutoStartStop
+• Tag Value: true
+• Technology: AWS Lambda, EventBridge, Python 3.11
+
+ARCHITECTURE
+------------
+1. EventBridge triggers Lambda functions on schedule
+2. Lambda queries all RDS instances
+3. Instances with AutoStartStop=true tag are affected
+4. CloudWatch Logs capture all operations
+
+IMPLEMENTATION STEPS
+--------------------
+
+Step 1: Create IAM Role
+• Open IAM Console → Roles → Create Role
+• Select Lambda service
+• Attach RDS and CloudWatch permissions
+• Name: RDS-StartStop-Lambda-Role
+
+Step 2: Create Lambda Functions
+• Create two functions: RDS-Start-Function & RDS-Stop-Function
+• Runtime: Python 3.11
+• Set environment variables:
+  - ACTION: start/stop
+  - TAG_KEY: AutoStartStop
+  - TAG_VALUE: true
+
+Step 3: Configure EventBridge Rules
+• Start schedule: cron(30 9 ? * MON-FRI *)
+• Stop schedule: cron(30 18 ? * MON-FRI *)
+• Target: Respective Lambda functions
+
+Step 4: Tag RDS Instances
+• Navigate to RDS Console
+• Select instance
+• Add tag: AutoStartStop = true
+
+LAMBDA FUNCTION CODE
+--------------------
+${FILES.lambda}
+
+TERRAFORM CONFIGURATION
+-----------------------
+See downloaded Terraform files for complete IaC setup.
+
+TESTING
+-------
+# Test START function
+aws lambda invoke --function-name RDS-Start-Function response.json
+
+# Test STOP function
+aws lambda invoke --function-name RDS-Stop-Function response.json
+
+# Check logs
+aws logs tail /aws/lambda/RDS-Start-Function --follow
+
+IMPORTANT NOTES
+---------------
+⚠ Timezone: Cron expressions use UTC
+⚠ Cannot stop Multi-AZ instances
+⚠ Cannot stop instances with read replicas
+⚠ Stopped instances auto-start after 7 days
+
+SUPPORT
+-------
+For questions or issues, refer to AWS documentation.
+
+© 2024 RDS Automation Guide
+`;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        saveAs(blob, `RDS-Automation-Guide-${getFormattedDate()}.txt`);
+        hideLoading();
+    } catch (error) {
+        showError('Failed to create document: ' + error.message);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Downloads module initialized');
+    
+    // Check if libraries loaded
+    setTimeout(function() {
+        if (!checkLibraries()) {
+            console.warn('Some libraries failed to load. Downloads may not work properly.');
+        } else {
+            console.log('All download libraries loaded successfully');
+        }
+    }, 2000);
+});
