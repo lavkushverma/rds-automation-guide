@@ -1,1 +1,386 @@
-/* Full CSS from document */
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #FF9900;
+    --secondary-color: #232F3E;
+    --accent-color: #146EB4;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --text-color: #333;
+    --bg-color: #f5f5f5;
+    --white: #ffffff;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+    color: var(--white);
+    padding: 3rem 0;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Download Section */
+.download-section {
+    background: var(--white);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--box-shadow);
+}
+
+.download-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--secondary-color);
+}
+
+.download-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Buttons */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.btn-pdf {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: var(--white);
+}
+
+.btn-word {
+    background: linear-gradient(135deg, #2b5797 0%, #1e3a5f 100%);
+    color: var(--white);
+}
+
+.btn-terraform {
+    background: linear-gradient(135deg, #7b42bc 0%, #5a32a3 100%);
+    color: var(--white);
+}
+
+.btn-python {
+    background: linear-gradient(135deg, #3776ab 0%, #2d5d8a 100%);
+    color: var(--white);
+}
+
+.btn-bash {
+    background: linear-gradient(135deg, #4EAA25 0%, #3d8a1e 100%);
+    color: var(--white);
+}
+
+.btn-all {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #e88b00 100%);
+    color: var(--white);
+    grid-column: 1 / -1;
+}
+
+/* Main Content */
+.main-content {
+    background: var(--white);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.section {
+    margin-bottom: 3rem;
+}
+
+.section h2 {
+    color: var(--secondary-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--primary-color);
+    font-size: 2rem;
+}
+
+.section h3 {
+    color: var(--accent-color);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.section h4 {
+    color: var(--text-color);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+/* Info Boxes */
+.info-box, .warning-box, .step-card {
+    background: #f8f9fa;
+    border-left: 4px solid var(--accent-color);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius);
+}
+
+.warning-box {
+    background: #fff3cd;
+    border-left-color: var(--warning-color);
+}
+
+.step-card {
+    background: var(--white);
+    border: 1px solid #e0e0e0;
+    box-shadow: var(--box-shadow);
+}
+
+.overview-list {
+    list-style: none;
+    padding: 0;
+}
+
+.overview-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.overview-list li:last-child {
+    border-bottom: none;
+}
+
+/* Architecture Diagram */
+.architecture-diagram {
+    background: var(--secondary-color);
+    color: var(--white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+}
+
+.architecture-diagram pre {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Code Blocks */
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--secondary-color);
+    color: var(--white);
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    margin-top: 1.5rem;
+}
+
+.code-title {
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.copy-btn {
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.copy-btn:hover {
+    background: #e88b00;
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+pre {
+    margin: 0;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    overflow-x: auto;
+}
+
+pre code {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+code {
+    background: #f4f4f4;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+}
+
+/* Lists */
+ol, ul {
+    margin-left: 2rem;
+    margin-bottom: 1rem;
+}
+
+ol li, ul li {
+    margin-bottom: 0.5rem;
+}
+
+ol li ul, ol li ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Footer */
+.footer {
+    background: var(--secondary-color);
+    color: var(--white);
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer p {
+    margin: 0.5rem 0;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: var(--white);
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .download-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .section h2 {
+        font-size: 1.5rem;
+    }
+    
+    .code-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    pre code {
+        font-size: 0.8rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .header,
+    .download-section,
+    .footer,
+    .copy-btn {
+        display: none;
+    }
+    
+    .main-content {
+        padding: 0;
+    }
+    
+    .section {
+        page-break-inside: avoid;
+    }
+}
