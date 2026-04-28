@@ -608,6 +608,21 @@ aws logs tail /aws/lambda/RDS-Start-Function --follow</code></pre>
     </div>
 
     <script src="js/main.js"></script>
+    <!-- Debug Script -->
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        console.log('=== Library Check ===');
+        console.log('JSZip loaded:', typeof JSZip !== 'undefined');
+        console.log('FileSaver loaded:', typeof saveAs !== 'undefined');
+        console.log('jsPDF loaded:', typeof window.jspdf !== 'undefined');
+        console.log('Prism loaded:', typeof Prism !== 'undefined');
+        
+        if (typeof JSZip === 'undefined' || typeof saveAs === 'undefined') {
+            alert('⚠️ Some download libraries failed to load. Downloads may not work. Please check your internet connection and refresh the page.');
+        }
+    }, 3000);
+});
+</script>
     <script src="js/downloads.js"></script>
 </body>
 </html>
