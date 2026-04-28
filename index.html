@@ -1,49 +1,40 @@
-import boto3
-import os
-import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-rds = boto3.client('rds')
-
-def lambda_handler(event, context):
-    action = os.environ.get('ACTION', 'stop')  # 'start' or 'stop'
-    tag_key = os.environ.get('TAG_KEY', 'AutoStartStop')
-    tag_value = os.environ.get('TAG_VALUE', 'true')
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <h1>Library Test</h1>
+    <button onclick="testLibraries()">Test All Libraries</button>
+    <button onclick="testDownload()">Test Simple Download</button>
+    <pre id="output"></pre>
     
-    try:
-        # Get all RDS instances
-        response = rds.describe_db_instances()
-        
-        for db_instance in response['DBInstances']:
-            db_instance_identifier = db_instance['DBInstanceIdentifier']
-            db_instance_arn = db_instance['DBInstanceArn']
-            db_instance_status = db_instance['DBInstanceStatus']
-            
-            # Get tags for the instance
-            tags_response = rds.list_tags_for_resource(ResourceName=db_instance_arn)
-            tags = {tag['Key']: tag['Value'] for tag in tags_response['TagList']}
-            
-            # Check if instance has the required tag
-            if tags.get(tag_key) == tag_value:
-                if action == 'stop' and db_instance_status == 'available':
-                    logger.info(f"Stopping RDS instance: {db_instance_identifier}")
-                    rds.stop_db_instance(DBInstanceIdentifier=db_instance_identifier)
-                    
-                elif action == 'start' and db_instance_status == 'stopped':
-                    logger.info(f"Starting RDS instance: {db_instance_identifier}")
-                    rds.start_db_instance(DBInstanceIdentifier=db_instance_identifier)
-                else:
-                    logger.info(f"Instance {db_instance_identifier} is in {db_instance_status} state. No action taken.")
-            else:
-                logger.info(f"Instance {db_instance_identifier} does not have required tag. Skipping.")
-        
-        return {
-            'statusCode': 200,
-            'body': f'Successfully executed {action} action on tagged RDS instances'
+    <script>
+        function log(msg) {
+            document.getElementById('output').textContent += msg + '\n';
         }
         
-    except Exception as e:
-        logger.error(f"Error: {str(e)}")
-        raise e
+        function testLibraries() {
+            document.getElementById('output').textContent = '';
+            log('Testing libraries...\n');
+            
+            log('JSZip: ' + (typeof JSZip !== 'undefined' ? '✓ Loaded' : '✗ Not loaded'));
+            log('FileSaver: ' + (typeof saveAs !== 'undefined' ? '✓ Loaded' : '✗ Not loaded'));
+            log('jsPDF: ' + (typeof window.jspdf !== 'undefined' ? '✓ Loaded' : '✗ Not loaded'));
+        }
+        
+        function testDownload() {
+            try {
+                const blob = new Blob(['Test content'], { type: 'text/plain' });
+                saveAs(blob, 'test.txt');
+                log('\n✓ Download initiated successfully!');
+            } catch(e) {
+                log('\n✗ Error: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
