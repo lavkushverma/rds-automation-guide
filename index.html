@@ -1,40 +1,613 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Download Test</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body>
-    <h1>Library Test</h1>
-    <button onclick="testLibraries()">Test All Libraries</button>
-    <button onclick="testDownload()">Test Simple Download</button>
-    <pre id="output"></pre>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RDS Start/Stop Automation - Complete Guide</title>
+    <link rel="stylesheet" href="css/style.css">
     
-    <script>
-        function log(msg) {
-            document.getElementById('output').textContent += msg + '\n';
-        }
-        
-        function testLibraries() {
-            document.getElementById('output').textContent = '';
-            log('Testing libraries...\n');
+    <!-- Fixed Library Imports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-P9bmyZ3h/PRngcHVVXFGRvLUG7qxqy7aG2kGLxz6gCQqpQ3jVpJg3TwZZv4KiTzR+6jLG9JHGgmNmD4FSVX0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-hcl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+</head>
+<!-- Rest of the HTML remains the same -->
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>🚀 RDS Start/Stop Automation Guide</h1>
+                <p class="subtitle">Complete Solution with Lambda, EventBridge & Terraform</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Download Section -->
+    <section class="download-section">
+        <div class="container">
+            <h2>📥 Download Complete Guide</h2>
+            <div class="download-buttons">
+                <button onclick="downloadPDF()" class="btn btn-pdf">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    Download PDF
+                </button>
+                
+                <button onclick="downloadDOCX()" class="btn btn-word">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    Download Word
+                </button>
+                
+                <button onclick="downloadTerraform()" class="btn btn-terraform">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Terraform Files
+                </button>
+                
+                <button onclick="downloadLambda()" class="btn btn-python">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    </svg>
+                    Download Lambda Code
+                </button>
+                
+                <button onclick="downloadBashScript()" class="btn btn-bash">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="4 17 10 11 4 5"></polyline>
+                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    Download Setup Script
+                </button>
+                
+                <button onclick="downloadAll()" class="btn btn-all">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Everything (ZIP)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content" id="content">
+        <div class="container">
             
-            log('JSZip: ' + (typeof JSZip !== 'undefined' ? '✓ Loaded' : '✗ Not loaded'));
-            log('FileSaver: ' + (typeof saveAs !== 'undefined' ? '✓ Loaded' : '✗ Not loaded'));
-            log('jsPDF: ' + (typeof window.jspdf !== 'undefined' ? '✓ Loaded' : '✗ Not loaded'));
+            <!-- Overview Section -->
+            <section class="section">
+                <h2>📋 Solution Overview</h2>
+                <div class="info-box">
+                    <ul class="overview-list">
+                        <li><strong>Start Time:</strong> 9:30 AM (Weekdays)</li>
+                        <li><strong>Stop Time:</strong> 6:30 PM (18:30, Weekdays)</li>
+                        <li><strong>Tag-based:</strong> Uses tags to identify RDS instances</li>
+                        <li><strong>Tag Key:</strong> <code>AutoStartStop</code></li>
+                        <li><strong>Tag Value:</strong> <code>true</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Architecture Diagram -->
+            <section class="section">
+                <h2>🏗️ Architecture</h2>
+                <div class="architecture-diagram">
+                    <pre>
+┌─────────────────┐         ┌──────────────────┐         ┌─────────────────┐
+│   EventBridge   │────────▶│  Lambda Function │────────▶│  RDS Instance   │
+│  (Cron Rules)   │         │  (Start/Stop)    │         │  (Tagged)       │
+└─────────────────┘         └──────────────────┘         └─────────────────┘
+     9:30 AM                        Checks                 AutoStartStop=true
+     6:30 PM                        Tags
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Lambda Function Code -->
+            <section class="section">
+                <h2>1️⃣ Lambda Function Code</h2>
+                <div class="code-header">
+                    <span class="code-title">lambda_function.py</span>
+                    <button onclick="copyCode('lambda-code')" class="copy-btn">Copy</button>
+                </div>
+                <pre><code id="lambda-code" class="language-python">import boto3
+import os
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+rds = boto3.client('rds')
+
+def lambda_handler(event, context):
+    action = os.environ.get('ACTION', 'stop')  # 'start' or 'stop'
+    tag_key = os.environ.get('TAG_KEY', 'AutoStartStop')
+    tag_value = os.environ.get('TAG_VALUE', 'true')
+    
+    try:
+        # Get all RDS instances
+        response = rds.describe_db_instances()
+        
+        for db_instance in response['DBInstances']:
+            db_instance_identifier = db_instance['DBInstanceIdentifier']
+            db_instance_arn = db_instance['DBInstanceArn']
+            db_instance_status = db_instance['DBInstanceStatus']
+            
+            # Get tags for the instance
+            tags_response = rds.list_tags_for_resource(ResourceName=db_instance_arn)
+            tags = {tag['Key']: tag['Value'] for tag in tags_response['TagList']}
+            
+            # Check if instance has the required tag
+            if tags.get(tag_key) == tag_value:
+                if action == 'stop' and db_instance_status == 'available':
+                    logger.info(f"Stopping RDS instance: {db_instance_identifier}")
+                    rds.stop_db_instance(DBInstanceIdentifier=db_instance_identifier)
+                    
+                elif action == 'start' and db_instance_status == 'stopped':
+                    logger.info(f"Starting RDS instance: {db_instance_identifier}")
+                    rds.start_db_instance(DBInstanceIdentifier=db_instance_identifier)
+                else:
+                    logger.info(f"Instance {db_instance_identifier} is in {db_instance_status} state. No action taken.")
+            else:
+                logger.info(f"Instance {db_instance_identifier} does not have required tag. Skipping.")
+        
+        return {
+            'statusCode': 200,
+            'body': f'Successfully executed {action} action on tagged RDS instances'
         }
         
-        function testDownload() {
-            try {
-                const blob = new Blob(['Test content'], { type: 'text/plain' });
-                saveAs(blob, 'test.txt');
-                log('\n✓ Download initiated successfully!');
-            } catch(e) {
-                log('\n✗ Error: ' + e.message);
-            }
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        raise e</code></pre>
+            </section>
+
+            <!-- Manual Steps -->
+            <section class="section">
+                <h2>2️⃣ Manual Setup Steps (AWS Console)</h2>
+                
+                <div class="step-card">
+                    <h3>Step 1: Create IAM Role for Lambda</h3>
+                    <ol>
+                        <li>Go to <strong>IAM Console</strong> → <strong>Roles</strong> → <strong>Create Role</strong></li>
+                        <li>Select <strong>Lambda</strong> as trusted entity</li>
+                        <li>Click <strong>Next</strong></li>
+                        <li>Create custom policy (click <strong>Create Policy</strong>):</li>
+                    </ol>
+                    
+                    <div class="code-header">
+                        <span class="code-title">IAM Policy JSON</span>
+                        <button onclick="copyCode('iam-policy')" class="copy-btn">Copy</button>
+                    </div>
+                    <pre><code id="iam-policy" class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "rds:DescribeDBInstances",
+                "rds:ListTagsForResource",
+                "rds:StartDBInstance",
+                "rds:StopDBInstance"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
         }
-    </script>
+    ]
+}</code></pre>
+                    
+                    <ol start="5">
+                        <li>Name it: <code>RDS-StartStop-Policy</code></li>
+                        <li>Attach policy to role</li>
+                        <li>Name role: <code>RDS-StartStop-Lambda-Role</code></li>
+                    </ol>
+                </div>
+
+                <div class="step-card">
+                    <h3>Step 2: Create Lambda Functions</h3>
+                    <ol>
+                        <li>Go to <strong>Lambda Console</strong> → <strong>Create Function</strong></li>
+                        <li>Choose <strong>Author from scratch</strong></li>
+                        <li>Configuration:
+                            <ul>
+                                <li><strong>Function name:</strong> <code>RDS-Start-Function</code></li>
+                                <li><strong>Runtime:</strong> Python 3.11</li>
+                                <li><strong>Role:</strong> Use existing role <code>RDS-StartStop-Lambda-Role</code></li>
+                            </ul>
+                        </li>
+                        <li>Click <strong>Create Function</strong></li>
+                        <li>Copy the Lambda code above</li>
+                        <li>Add <strong>Environment Variables</strong>:
+                            <ul>
+                                <li><code>ACTION</code> = <code>start</code></li>
+                                <li><code>TAG_KEY</code> = <code>AutoStartStop</code></li>
+                                <li><code>TAG_VALUE</code> = <code>true</code></li>
+                            </ul>
+                        </li>
+                        <li>Set <strong>Timeout</strong> to 1 minute (Configuration → General)</li>
+                        <li>Click <strong>Deploy</strong></li>
+                        <li><strong>Repeat</strong> for Stop function with <code>ACTION</code> = <code>stop</code></li>
+                    </ol>
+                </div>
+
+                <div class="step-card">
+                    <h3>Step 3: Create EventBridge Rules</h3>
+                    <h4>For START (9:30 AM):</h4>
+                    <ol>
+                        <li>Go to <strong>EventBridge Console</strong> → <strong>Rules</strong> → <strong>Create Rule</strong></li>
+                        <li>Configuration:
+                            <ul>
+                                <li><strong>Name:</strong> <code>RDS-Start-Schedule</code></li>
+                                <li><strong>Rule type:</strong> Schedule</li>
+                                <li><strong>Cron:</strong> <code>cron(30 9 ? * MON-FRI *)</code></li>
+                            </ul>
+                        </li>
+                        <li><strong>Target:</strong> Lambda function → <code>RDS-Start-Function</code></li>
+                    </ol>
+                    
+                    <h4>For STOP (6:30 PM):</h4>
+                    <ol>
+                        <li>Repeat with:
+                            <ul>
+                                <li><strong>Name:</strong> <code>RDS-Stop-Schedule</code></li>
+                                <li><strong>Cron:</strong> <code>cron(30 18 ? * MON-FRI *)</code></li>
+                                <li><strong>Target:</strong> <code>RDS-Stop-Function</code></li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="step-card">
+                    <h3>Step 4: Tag RDS Instances</h3>
+                    <ol>
+                        <li>Go to <strong>RDS Console</strong> → Select DB instance</li>
+                        <li><strong>Actions</strong> → <strong>Add tags</strong></li>
+                        <li>Add tag:
+                            <ul>
+                                <li><strong>Key:</strong> <code>AutoStartStop</code></li>
+                                <li><strong>Value:</strong> <code>true</code></li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Terraform Code -->
+            <section class="section">
+                <h2>3️⃣ Terraform Infrastructure as Code</h2>
+                
+                <div class="code-header">
+                    <span class="code-title">variables.tf</span>
+                    <button onclick="copyCode('terraform-variables')" class="copy-btn">Copy</button>
+                </div>
+                <pre><code id="terraform-variables" class="language-hcl">variable "aws_region" {
+  description = "AWS Region"
+  default     = "us-east-1"
+}
+
+variable "tag_key" {
+  description = "Tag key to identify RDS instances"
+  default     = "AutoStartStop"
+}
+
+variable "tag_value" {
+  description = "Tag value to identify RDS instances"
+  default     = "true"
+}
+
+variable "start_cron" {
+  description = "Cron expression for start schedule"
+  default     = "cron(30 9 ? * MON-FRI *)"  # 9:30 AM Mon-Fri
+}
+
+variable "stop_cron" {
+  description = "Cron expression for stop schedule"
+  default     = "cron(30 18 ? * MON-FRI *)" # 6:30 PM Mon-Fri
+}</code></pre>
+
+                <div class="code-header">
+                    <span class="code-title">main.tf</span>
+                    <button onclick="copyCode('terraform-main')" class="copy-btn">Copy</button>
+                </div>
+                <pre><code id="terraform-main" class="language-hcl">terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+# IAM Role for Lambda
+resource "aws_iam_role" "lambda_role" {
+  name = "RDS-StartStop-Lambda-Role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# IAM Policy
+resource "aws_iam_policy" "lambda_policy" {
+  name        = "RDS-StartStop-Policy"
+  description = "Policy for Lambda to start/stop RDS instances"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "rds:DescribeDBInstances",
+          "rds:ListTagsForResource",
+          "rds:StartDBInstance",
+          "rds:StopDBInstance"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
+# Attach policy to role
+resource "aws_iam_role_policy_attachment" "lambda_policy_attach" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_policy.arn
+}
+
+# Lambda Function - START
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/lambda_function.zip"
+  
+  source {
+    content  = file("${path.module}/lambda_function.py")
+    filename = "lambda_function.py"
+  }
+}
+
+resource "aws_lambda_function" "rds_start" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "RDS-Start-Function"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "lambda_function.lambda_handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  runtime         = "python3.11"
+  timeout         = 60
+
+  environment {
+    variables = {
+      ACTION    = "start"
+      TAG_KEY   = var.tag_key
+      TAG_VALUE = var.tag_value
+    }
+  }
+}
+
+# Lambda Function - STOP
+resource "aws_lambda_function" "rds_stop" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "RDS-Stop-Function"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "lambda_function.lambda_handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  runtime         = "python3.11"
+  timeout         = 60
+
+  environment {
+    variables = {
+      ACTION    = "stop"
+      TAG_KEY   = var.tag_key
+      TAG_VALUE = var.tag_value
+    }
+  }
+}
+
+# CloudWatch Event Rule - START
+resource "aws_cloudwatch_event_rule" "rds_start_schedule" {
+  name                = "RDS-Start-Schedule"
+  description         = "Trigger RDS start at 9:30 AM"
+  schedule_expression = var.start_cron
+}
+
+# CloudWatch Event Target - START
+resource "aws_cloudwatch_event_target" "rds_start_target" {
+  rule      = aws_cloudwatch_event_rule.rds_start_schedule.name
+  target_id = "RDSStartLambda"
+  arn       = aws_lambda_function.rds_start.arn
+}
+
+# Lambda Permission - START
+resource "aws_lambda_permission" "allow_eventbridge_start" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.rds_start.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.rds_start_schedule.arn
+}
+
+# CloudWatch Event Rule - STOP
+resource "aws_cloudwatch_event_rule" "rds_stop_schedule" {
+  name                = "RDS-Stop-Schedule"
+  description         = "Trigger RDS stop at 6:30 PM"
+  schedule_expression = var.stop_cron
+}
+
+# CloudWatch Event Target - STOP
+resource "aws_cloudwatch_event_target" "rds_stop_target" {
+  rule      = aws_cloudwatch_event_rule.rds_stop_schedule.name
+  target_id = "RDSStopLambda"
+  arn       = aws_lambda_function.rds_stop.arn
+}
+
+# Lambda Permission - STOP
+resource "aws_lambda_permission" "allow_eventbridge_stop" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.rds_stop.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.rds_stop_schedule.arn
+}</code></pre>
+
+                <div class="code-header">
+                    <span class="code-title">outputs.tf</span>
+                    <button onclick="copyCode('terraform-outputs')" class="copy-btn">Copy</button>
+                </div>
+                <pre><code id="terraform-outputs" class="language-hcl">output "start_lambda_arn" {
+  value = aws_lambda_function.rds_start.arn
+}
+
+output "stop_lambda_arn" {
+  value = aws_lambda_function.rds_stop.arn
+}
+
+output "start_schedule_rule" {
+  value = aws_cloudwatch_event_rule.rds_start_schedule.name
+}
+
+output "stop_schedule_rule" {
+  value = aws_cloudwatch_event_rule.rds_stop_schedule.name
+}</code></pre>
+
+                <div class="info-box">
+                    <h4>Deploy with Terraform:</h4>
+                    <pre><code class="language-bash"># Initialize
+terraform init
+
+# Plan
+terraform plan
+
+# Apply
+terraform apply -auto-approve
+
+# Tag RDS instance
+aws rds add-tags-to-resource \
+  --resource-name arn:aws:rds:us-east-1:ACCOUNT_ID:db:your-db-instance \
+  --tags Key=AutoStartStop,Value=true</code></pre>
+                </div>
+            </section>
+
+            <!-- Testing Section -->
+            <section class="section">
+                <h2>4️⃣ Testing</h2>
+                <div class="code-header">
+                    <span class="code-title">Test Commands</span>
+                    <button onclick="copyCode('test-commands')" class="copy-btn">Copy</button>
+                </div>
+                <pre><code id="test-commands" class="language-bash"># Test START function
+aws lambda invoke \
+  --function-name RDS-Start-Function \
+  --region us-east-1 \
+  response.json
+
+cat response.json
+
+# Test STOP function
+aws lambda invoke \
+  --function-name RDS-Stop-Function \
+  --region us-east-1 \
+  response.json
+
+cat response.json
+
+# Check CloudWatch Logs
+aws logs tail /aws/lambda/RDS-Start-Function --follow</code></pre>
+            </section>
+
+            <!-- Important Notes -->
+            <section class="section">
+                <h2>⚠️ Important Notes</h2>
+                <div class="warning-box">
+                    <h3>Timezone Considerations</h3>
+                    <p>Cron expressions use UTC. Adjust for your timezone:</p>
+                    <ul>
+                        <li><strong>EST:</strong> UTC-5</li>
+                        <li><strong>PST:</strong> UTC-8</li>
+                        <li><strong>Example:</strong> 9:30 AM EST = <code>cron(30 14 ? * MON-FRI *)</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <h3>RDS Limitations</h3>
+                    <ul>
+                        <li>❌ Can't stop Multi-AZ instances</li>
+                        <li>❌ Can't stop instances with read replicas</li>
+                        <li>⏰ Stopped instances auto-start after 7 days</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <h3>Cost Optimization</h3>
+                    <p>✅ Only instances with <code>AutoStartStop=true</code> tag will be affected</p>
+                    <p>✅ Check CloudWatch Logs for execution details</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 RDS Automation Guide | Built with ❤️ for AWS</p>
+            <p>Made by DevOps Engineers, for DevOps Engineers</p>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generating your download...</p>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/downloads.js"></script>
 </body>
 </html>
